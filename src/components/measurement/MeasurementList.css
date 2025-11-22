@@ -1,0 +1,89 @@
+.measurement-list {
+  margin: 2rem 0;
+}
+
+.measurement-list.empty {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  color: #666;
+}
+
+.measurement-list.empty .hint {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+.measurement-list h3 {
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.measurement-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.measurement-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.measurement-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #2d5016;
+}
+
+.measurement-number {
+  font-weight: bold;
+  color: #2d5016;
+  font-size: 1.1rem;
+  min-width: 30px;
+}
+
+.measurement-details {
+  flex: 1;
+}
+
+.measurement-species {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.measurement-values {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.measurement-volume {
+  font-weight: bold;
+  color: #2d5016;
+  font-size: 1.1rem;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .measurement-item {
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+  }
+
+  .measurement-volume {
+    grid-column: 1 / -1;
+    text-align: left;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f0f0f0;
+  }
+}
