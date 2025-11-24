@@ -72,6 +72,12 @@ export default function MeasurementForm({
     const diameterNum = parseFloat(diameter);
     const heightNum = parseFloat(height);
 
+    // NaN ellenőrzés
+    if (isNaN(diameterNum) || isNaN(heightNum)) {
+      setError('Érvénytelen szám formátum! Kérlek számokat adj meg.');
+      return;
+    }
+
     // Átmérő validáció: 6-200 cm
     if (diameterNum < 6) {
       setError('Az átmérő nem lehet kisebb, mint 6 cm!');
