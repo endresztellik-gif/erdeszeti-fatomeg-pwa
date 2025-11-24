@@ -160,6 +160,20 @@ export class SurveyService {
       await db.sessions.put(session);
     }
   }
+
+  /**
+   * Session részleges frissítése
+   */
+  async updateSession(
+    sessionId: string,
+    updates: Partial<Omit<SurveySession, 'id' | 'startedAt'>>
+  ): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (session) {
+      Object.assign(session, updates);
+      await db.sessions.put(session);
+    }
+  }
 }
 
 // Singleton instance export

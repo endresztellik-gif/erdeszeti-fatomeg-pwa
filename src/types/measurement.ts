@@ -52,6 +52,15 @@ export interface SurveySession {
   /** Helyszín (opcionális, pl. "Erdőrészlet 42A") */
   location?: string;
 
+  /** Helyszín részletes adatok */
+  locationData?: {
+    type: 'erdoreszlet' | 'helyrajzi';
+    kozseg?: string;
+    erdotag?: string;
+    erdoreszlet?: string;
+    helyrajziSzam?: string;
+  };
+
   /** GPS koordináták (opcionális, jövőbeli funkció) */
   gpsCoordinates?: {
     latitude: number;

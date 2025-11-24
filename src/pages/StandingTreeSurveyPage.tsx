@@ -3,6 +3,7 @@ import MainLayout from '@components/layout/MainLayout';
 import VoiceInput from '@components/measurement/VoiceInput';
 import MeasurementForm from '@components/measurement/MeasurementForm';
 import MeasurementList from '@components/measurement/MeasurementList';
+import LocationForm, { LocationData } from '@components/measurement/LocationForm';
 import { surveyService } from '@services/surveyService';
 import { SurveySession } from '@app-types/measurement';
 import './StandingTreeSurveyPage.css';
@@ -41,6 +42,29 @@ export default function StandingTreeSurveyPage() {
     }
   };
 
+  // Helyszín frissítése
+  const handleLocationChange = async (locationData: LocationData) => {
+    if (session) {
+      // Generálunk egy szöveges location string-et is
+      let locationString = '';
+      if (locationData.type === 'erdoreszlet') {
+        // Formátum: "Sopron 16A"
+        locationString = `${locationData.kozseg || ''} ${locationData.erdotag || ''}${locationData.erdoreszlet || ''}`.trim();
+      } else {
+        // Formátum: "Sopron 025/2b"
+        locationString = `${locationData.kozseg || ''} ${locationData.helyrajziSzam || ''}`.trim();
+      }
+
+      // Frissítjük a session-t
+      session.location = locationString;
+      session.locationData = locationData;
+      await surveyService.updateSession(session.id, {
+        location: locationString,
+        locationData: locationData,
+      });
+    }
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -66,8 +90,12 @@ export default function StandingTreeSurveyPage() {
       <div className="survey-page">
         <h2 className="survey-title">🌲 Lábon álló erdő felmérése</h2>
 
+        <LocationForm
+          onLocationChange={handleLocationChange}
+          initialData={session.locationData}
+        />
+
         <div className="survey-info">
-          <p>Session ID: <code>{session.id.slice(0, 8)}...</code></p>
           <p>Mért fák száma: <strong>{session.trees.length}</strong></p>
         </div>
 

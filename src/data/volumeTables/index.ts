@@ -1,30 +1,35 @@
+/**
+ * DEPRECATED: Ez a modul elavult.
+ * Használd helyette: @data/volumeFormulas
+ *
+ * A fatérfogat számítás most képlet alapú, nem táblázat alapú.
+ */
+
 import beechData from './beech.json';
+import sessileOakData from './sessileOak.json';
+import pedunculateOakData from './pedunculateOak.json';
+import blackLocustData from './blackLocust.json';
+import spruceData from './spruce.json';
 import { VolumeTable } from '@app-types/volumeTable';
 
-// Típusos import
+// Típusos import (backwards compatibility)
 export const beech: VolumeTable = beechData as VolumeTable;
+export const sessileOak: VolumeTable = sessileOakData as VolumeTable;
+export const pedunculateOak: VolumeTable = pedunculateOakData as VolumeTable;
+export const blackLocust: VolumeTable = blackLocustData as VolumeTable;
+export const spruce: VolumeTable = spruceData as VolumeTable;
 
-// Központi export object
+// Központi export object (backwards compatibility)
 export const volumeTables = {
   beech,
-  // További fafajok később hozzáadhatók:
-  // sessileOak,
-  // pedunculateOak,
-  // turkeyOak,
-  // acacia,
-  // scotsPine,
-  // blackPine,
-  // spruce,
-  // redPine,
-  // whitePoplar,
-  // blackPoplar,
+  sessileOak,
+  pedunculateOak,
+  blackLocust,
+  spruce,
 };
 
-// Fafaj kulcsok típusa
-export type SpeciesKey = keyof typeof volumeTables;
+// Re-export az új modulból
+export { volumeFormulas, speciesList, type SpeciesKey } from '../volumeFormulas';
 
-// Fafajok listája (dropdown-hoz)
-export const speciesList = [
-  { key: 'beech', name: 'Bükk', code: 'B' },
-  // További fafajok később hozzáadhatók
-] as const;
+// Régi típus (backwards compatibility)
+export type OldSpeciesKey = keyof typeof volumeTables;

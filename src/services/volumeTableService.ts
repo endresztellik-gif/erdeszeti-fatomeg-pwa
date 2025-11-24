@@ -10,10 +10,11 @@ export class VolumeTableService {
 
   /**
    * Táblázat betöltése (lazy loading)
+   * DEPRECATED: Használd inkább a képlet alapú számítást
    */
   private loadTable(species: SpeciesKey): VolumeTable {
     if (!this.tables.has(species)) {
-      this.tables.set(species, volumeTables[species]);
+      this.tables.set(species, volumeTables[species as keyof typeof volumeTables]);
     }
     return this.tables.get(species)!;
   }

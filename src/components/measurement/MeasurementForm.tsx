@@ -69,12 +69,37 @@ export default function MeasurementForm({
       return;
     }
 
+    const diameterNum = parseFloat(diameter);
+    const heightNum = parseFloat(height);
+
+    // Átmérő validáció: 6-200 cm
+    if (diameterNum < 6) {
+      setError('Az átmérő nem lehet kisebb, mint 6 cm!');
+      return;
+    }
+
+    if (diameterNum > 200) {
+      setError('Az átmérő nem lehet nagyobb, mint 200 cm!');
+      return;
+    }
+
+    // Magasság validáció
+    if (heightNum < 1) {
+      setError('A magasság nem lehet kisebb, mint 1 m!');
+      return;
+    }
+
+    if (heightNum > 100) {
+      setError('A magasság nem lehet nagyobb, mint 100 m!');
+      return;
+    }
+
     try {
       await surveyService.addMeasurement(
         sessionId,
         species as any,
-        parseFloat(diameter),
-        parseFloat(height)
+        diameterNum,
+        heightNum
       );
 
       // Reset
@@ -130,10 +155,14 @@ export default function MeasurementForm({
               value={diameter}
               onChange={(e) => setDiameter(e.target.value)}
               placeholder="pl. 28"
-              min="1"
+              min="6"
               max="200"
+              step="0.1"
               required
             />
+            <small style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem', display: 'block' }}>
+              Mellmagassági átmérő (6-200 cm)
+            </small>
           </div>
 
           <div className="form-group">

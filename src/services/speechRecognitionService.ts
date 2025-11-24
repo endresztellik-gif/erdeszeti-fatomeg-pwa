@@ -1,4 +1,6 @@
 import { SpeechRecognitionResult } from '@app-types/volumeTable';
+import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition as CapacitorSpeechRecognition } from '@capacitor-community/speech-recognition';
 
 // Web Speech API típusdefiníciók (globális interface-ek kiegészítése)
 declare global {
@@ -8,16 +10,27 @@ declare global {
 }
 
 /**
+ * Platform típus
+ */
+type Platform = 'web' | 'ios' | 'android';
+
+/**
  * Beszédfelismerés szolgáltatás
- * Magyar nyelv támogatással, Web Speech API wrapper
+ * Magyar nyelv támogatással
+ * - Web: Web Speech API (Chrome/Edge desktop)
+ * - iOS/Android: Capacitor Speech Recognition plugin (natív)
  */
 export class SpeechRecognitionService {
   private recognition: SpeechRecognition | null = null;
   private isListening = false;
+  private platform: Platform;
 
   constructor() {
-    // Böngésző kompatibilitás ellenőrzése
-    if ('webkitSpeechRecognition' in window) {
+    // Platform detektálás
+    this.platform = Capacitor.getPlatform() as Platform;
+
+    // Web Speech API inicializálás (csak web platformon)
+    if (this.platform === 'web' && 'webkitSpeechRecognition' in window) {
       this.recognition = new window.webkitSpeechRecognition();
       this.recognition.lang = 'hu-HU';
       this.recognition.continuous = false;
@@ -29,10 +42,63 @@ export class SpeechRecognitionService {
   /**
    * Beszédfelismerés indítása
    */
-  start(
+  async start(
     onResult: (result: SpeechRecognitionResult) => void,
     onError: (error: string) => void
-  ): void {
+  ): Promise<void> {
+    // Natív platform (iOS/Android)
+    if (this.platform === 'ios' || this.platform === 'android') {
+      try {
+        // Engedély kérése
+        const { available } = await CapacitorSpeechRecognition.available();
+        if (!available) {
+          onError('Beszédfelismerés nem elérhető ezen az eszközön');
+          return;
+        }
+
+        const { speechRecognition: permissionGranted } = await CapacitorSpeechRecognition.requestPermissions();
+        if (!permissionGranted) {
+          onError('Mikrofon engedély megtagadva');
+          return;
+        }
+
+        // Beszédfelismerés indítása
+        this.isListening = true;
+
+        CapacitorSpeechRecognition.start({
+          language: 'hu-HU',
+          maxResults: 1,
+          prompt: 'Mondj be egy mérést',
+          partialResults: false,
+          popup: false,
+        });
+
+        // Eredmény figyelése
+        CapacitorSpeechRecognition.addListener('partialResults', (data: any) => {
+          if (data.matches && data.matches.length > 0) {
+            onResult({
+              transcript: data.matches[0],
+              confidence: 1.0,
+              isFinal: false,
+            });
+          }
+        });
+
+        CapacitorSpeechRecognition.addListener('listeningState', (state: any) => {
+          if (!state.isListening) {
+            this.isListening = false;
+          }
+        });
+
+      } catch (error: any) {
+        console.error('Capacitor Speech Recognition error:', error);
+        onError(error.message || 'Hiba történt a beszédfelismerés során');
+        this.isListening = false;
+      }
+      return;
+    }
+
+    // Web platform (Web Speech API)
     if (!this.recognition) {
       onError('Beszédfelismerés nem támogatott ebben a böngészőben');
       return;
@@ -85,7 +151,17 @@ export class SpeechRecognitionService {
   /**
    * Beszédfelismerés leállítása
    */
-  stop(): void {
+  async stop(): Promise<void> {
+    if (this.platform === 'ios' || this.platform === 'android') {
+      try {
+        await CapacitorSpeechRecognition.stop();
+        this.isListening = false;
+      } catch (error) {
+        console.error('Error stopping Capacitor speech recognition:', error);
+      }
+      return;
+    }
+
     if (this.recognition) {
       this.recognition.stop();
       this.isListening = false;
@@ -103,7 +179,17 @@ export class SpeechRecognitionService {
    * Támogatott-e a beszédfelismerés
    */
   isSupported(): boolean {
-    return this.recognition !== null;
+    if (this.platform === 'ios' || this.platform === 'android') {
+      return true; // Natív platformokon mindig támogatott (permission check later)
+    }
+    return this.recognition !== null; // Web: csak ha Web Speech API elérhető
+  }
+
+  /**
+   * Platform lekérdezése
+   */
+  getPlatform(): Platform {
+    return this.platform;
   }
 }
 

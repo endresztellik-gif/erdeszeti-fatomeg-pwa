@@ -1,8 +1,17 @@
 import { TreeMeasurement } from '@app-types/measurement';
+import { volumeFormulas, SpeciesKey } from '@data/volumeFormulas';
 import './MeasurementList.css';
 
 interface MeasurementListProps {
   trees: TreeMeasurement[];
+}
+
+/**
+ * Fafaj kulcs -> név átalakítás
+ */
+function getSpeciesName(key: string): string {
+  const params = volumeFormulas[key as SpeciesKey];
+  return params ? params.species : key;
 }
 
 /**
@@ -26,7 +35,7 @@ export default function MeasurementList({ trees }: MeasurementListProps) {
           <div key={tree.id} className="measurement-item">
             <div className="measurement-number">{index + 1}.</div>
             <div className="measurement-details">
-              <div className="measurement-species">{tree.species}</div>
+              <div className="measurement-species">{getSpeciesName(tree.species)}</div>
               <div className="measurement-values">
                 Ø {tree.diameterCm} cm × {tree.heightM} m
               </div>

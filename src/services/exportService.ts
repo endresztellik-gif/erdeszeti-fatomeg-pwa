@@ -2,6 +2,7 @@ import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import { SurveySession } from '@app-types/measurement';
 import { BackupData, PDFReportData } from '@app-types/export';
+import { volumeFormulas, SpeciesKey } from '@data/volumeFormulas';
 
 /**
  * Export szolgáltatás
@@ -9,11 +10,18 @@ import { BackupData, PDFReportData } from '@app-types/export';
  */
 export class ExportService {
   /**
+   * Fafaj kulcs -> név átalakítás
+   */
+  private getSpeciesName(key: string): string {
+    const params = volumeFormulas[key as SpeciesKey];
+    return params ? params.species : key;
+  }
+  /**
    * CSV export
    */
   exportCSV(session: SurveySession, filename?: string): void {
     const data = session.trees.map((tree) => ({
-      Fafaj: tree.species,
+      Fafaj: this.getSpeciesName(tree.species),
       'Átmérő (cm)': tree.diameterCm,
       'Magasság (m)': tree.heightM,
       'Fatömeg (m³)': tree.volumeM3.toFixed(2),
@@ -95,7 +103,7 @@ export class ExportService {
       }
 
       doc.text((index + 1).toString(), 20, y);
-      doc.text(tree.species, 45, y);
+      doc.text(this.getSpeciesName(tree.species), 45, y);
       doc.text(tree.diameterCm.toString(), 90, y);
       doc.text(tree.heightM.toString(), 130, y);
       doc.text(tree.volumeM3.toFixed(2), 170, y);
