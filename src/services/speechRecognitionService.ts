@@ -104,8 +104,15 @@ export class SpeechRecognitionService {
       return;
     }
 
+    this.recognition.onstart = () => {
+      console.log('Speech recognition started successfully');
+      this.isListening = true;
+    };
+
     this.recognition.onresult = (event) => {
+      console.log('Speech recognition result:', event.results);
       const result = event.results[0][0];
+      console.log('Transcript:', result.transcript, 'Confidence:', result.confidence);
       onResult({
         transcript: result.transcript,
         confidence: result.confidence,
@@ -114,21 +121,27 @@ export class SpeechRecognitionService {
     };
 
     this.recognition.onerror = (event) => {
+      console.error('Speech recognition error event:', event.error, event);
       let errorMessage = 'Hiba történt a beszédfelismerés során';
 
       switch (event.error) {
         case 'no-speech':
-          errorMessage = 'Nem észleltünk beszédet';
+          errorMessage = 'Nem észleltünk beszédet. Próbáld újra és beszélj hangosabban!';
           break;
         case 'audio-capture':
-          errorMessage = 'Nincs mikrofon vagy nem engedélyezett';
+          errorMessage = 'Nincs mikrofon vagy nem működik. Ellenőrizd a mikrofon beállításokat!';
           break;
         case 'not-allowed':
-          errorMessage = 'Mikrofon hozzáférés megtagadva';
+          errorMessage = 'Mikrofon hozzáférés megtagadva. Engedélyezd a mikrofont a böngésző beállításokban!';
           break;
         case 'network':
           errorMessage = 'Nincs internetkapcsolat (beszédfelismeréshez szükséges)';
           break;
+        case 'aborted':
+          errorMessage = 'Beszédfelismerés megszakítva';
+          break;
+        default:
+          errorMessage = `Hiba: ${event.error}`;
       }
 
       onError(errorMessage);
@@ -136,14 +149,17 @@ export class SpeechRecognitionService {
     };
 
     this.recognition.onend = () => {
+      console.log('Speech recognition ended');
       this.isListening = false;
     };
 
     try {
+      console.log('Starting speech recognition... Platform:', this.platform, 'Lang:', this.recognition.lang);
       this.recognition.start();
-      this.isListening = true;
-    } catch (error) {
-      onError('A beszédfelismerés már fut');
+      // isListening = true is set in onstart callback
+    } catch (error: any) {
+      console.error('Failed to start speech recognition:', error);
+      onError(error.message || 'A beszédfelismerés már fut');
       this.isListening = false;
     }
   }
