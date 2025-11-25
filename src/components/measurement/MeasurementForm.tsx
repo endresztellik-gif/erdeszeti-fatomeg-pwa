@@ -65,7 +65,9 @@ export default function MeasurementForm({
   const speakConfirmation = async (d: string, h: string) => {
     try {
       const text = `Bükk, ${d} centiméter átmérő, ${h} méter magasság. Jóváhagyod? Mondj igent vagy újrát.`;
+      console.log('Speaking confirmation:', text);
       await textToSpeech.speak(text);
+      console.log('TTS completed, starting voice confirmation...');
 
       // TTS után indítjuk a confirmation listening-et
       setTimeout(() => {
@@ -73,10 +75,15 @@ export default function MeasurementForm({
       }, 500); // Kis késleltetés, hogy a TTS biztosan befejeződjön
     } catch (err) {
       console.error('TTS error:', err);
+      // Ha TTS nem működik, akkor is indítsuk el a voice confirmation-t
+      setTimeout(() => {
+        startVoiceConfirmation();
+      }, 100);
     }
   };
 
   const startVoiceConfirmation = async () => {
+    console.log('Starting voice confirmation listener...');
     setWaitingForVoiceConfirmation(true);
 
     await speechRecognition.start(
