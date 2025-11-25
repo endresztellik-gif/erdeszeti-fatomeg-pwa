@@ -5,6 +5,7 @@ import MeasurementForm from '@components/measurement/MeasurementForm';
 import MeasurementList from '@components/measurement/MeasurementList';
 import LocationForm, { LocationData } from '@components/measurement/LocationForm';
 import { surveyService } from '@services/surveyService';
+import { exportService } from '@services/exportService';
 import { SurveySession } from '@app-types/measurement';
 import './StandingTreeSurveyPage.css';
 
@@ -119,6 +120,26 @@ export default function StandingTreeSurveyPage() {
                 {session.trees.reduce((sum, t) => sum + t.volumeM3, 0).toFixed(2)} m³
               </strong>
             </p>
+            <div className="export-buttons">
+              <button
+                onClick={() => exportService.exportExcel(session)}
+                className="export-btn excel"
+              >
+                📊 Excel
+              </button>
+              <button
+                onClick={() => exportService.exportCSV(session)}
+                className="export-btn csv"
+              >
+                📄 CSV
+              </button>
+              <button
+                onClick={() => exportService.exportPDF(session)}
+                className="export-btn pdf"
+              >
+                📋 PDF
+              </button>
+            </div>
           </div>
         )}
       </div>

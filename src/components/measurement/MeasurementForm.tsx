@@ -38,6 +38,15 @@ export default function MeasurementForm({
     const numbers = text.match(/\d+/g);
 
     if (numbers && numbers.length >= 2) {
+      const diameterNum = parseFloat(numbers[0]);
+
+      // Páros átmérő ellenőrzés
+      if (diameterNum % 2 !== 0) {
+        setError('Az átmérő csak páros szám lehet (pl. 20, 22, 24 cm)! Próbáld újra!');
+        onClearTranscript();
+        return;
+      }
+
       setDiameter(numbers[0]);
       setHeight(numbers[1]);
 
@@ -86,6 +95,12 @@ export default function MeasurementForm({
 
     if (diameterNum > 200) {
       setError('Az átmérő nem lehet nagyobb, mint 200 cm!');
+      return;
+    }
+
+    // Páros átmérő ellenőrzés
+    if (diameterNum % 2 !== 0) {
+      setError('Az átmérő csak páros szám lehet (pl. 20, 22, 24 cm)!');
       return;
     }
 
@@ -163,11 +178,11 @@ export default function MeasurementForm({
               placeholder="pl. 28"
               min="6"
               max="200"
-              step="0.1"
+              step="2"
               required
             />
             <small style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem', display: 'block' }}>
-              Mellmagassági átmérő (6-200 cm)
+              Mellmagassági átmérő (6-200 cm, csak páros számok)
             </small>
           </div>
 

@@ -8,8 +8,9 @@
   background-color: #2d5016;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -17,6 +18,7 @@
   gap: 0.75rem;
   transition: all 0.2s;
   min-height: 70px;
+  box-shadow: 0 4px 12px rgba(45, 80, 22, 0.2);
 }
 
 .mic-button:hover {
@@ -71,5 +73,11 @@
   .mic-button {
     padding: 1.25rem;
     font-size: 1rem;
+    min-height: 65px;
+  }
+
+  .voice-hint {
+    font-size: 0.85rem;
+    padding: 0 0.5rem;
   }
 }

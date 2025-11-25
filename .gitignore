@@ -30,3 +30,6 @@ ios/
 # Debug and test files
 debug-*.js
 test-*.js
+
+# Local Netlify folder
+.netlify

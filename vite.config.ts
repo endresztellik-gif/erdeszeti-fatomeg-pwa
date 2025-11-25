@@ -83,7 +83,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           dexie: ['dexie'],
-          export: ['jspdf', 'papaparse'],
+          export: ['jspdf', 'papaparse', 'xlsx'],
         },
       },
     },

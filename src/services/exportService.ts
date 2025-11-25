@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 import { SurveySession } from '@app-types/measurement';
 import { BackupData, PDFReportData } from '@app-types/export';
 import { volumeFormulas, SpeciesKey } from '@data/volumeFormulas';
@@ -125,6 +126,51 @@ export class ExportService {
 
     // Letöltés
     doc.save(filename || `fatomeg_jegyzokonyv_${session.id}.pdf`);
+  }
+
+  /**
+   * Excel export
+   */
+  exportExcel(session: SurveySession, filename?: string): void {
+    const data = session.trees.map((tree, index) => ({
+      'Sorszám': index + 1,
+      'Fafaj': this.getSpeciesName(tree.species),
+      'Átmérő (cm)': tree.diameterCm,
+      'Magasság (m)': tree.heightM,
+      'Fatömeg (m³)': Number(tree.volumeM3.toFixed(2)),
+      'Időpont': new Date(tree.timestamp).toLocaleString('hu-HU'),
+    }));
+
+    // Összesítő sor hozzáadása
+    const totalVolume = session.trees.reduce((sum, t) => sum + t.volumeM3, 0);
+    data.push({
+      'Sorszám': '',
+      'Fafaj': 'ÖSSZESEN',
+      'Átmérő (cm)': '',
+      'Magasság (m)': '',
+      'Fatömeg (m³)': Number(totalVolume.toFixed(2)),
+      'Időpont': '',
+    } as any);
+
+    // Worksheet létrehozása
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Oszlopszélességek beállítása
+    ws['!cols'] = [
+      { wch: 10 }, // Sorszám
+      { wch: 20 }, // Fafaj
+      { wch: 15 }, // Átmérő
+      { wch: 15 }, // Magasság
+      { wch: 15 }, // Fatömeg
+      { wch: 20 }, // Időpont
+    ];
+
+    // Workbook létrehozása
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Felmérés');
+
+    // Letöltés
+    XLSX.writeFile(wb, filename || `fatomeg_${session.id}.xlsx`);
   }
 
   /**
