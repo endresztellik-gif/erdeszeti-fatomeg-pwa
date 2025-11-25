@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { surveyService } from '@services/surveyService';
 import { textToSpeech } from '@services/textToSpeechService';
+import { speechRecognition } from '@services/speechRecognitionService';
 import { speciesList } from '@data/volumeTables';
 import './MeasurementForm.css';
 
@@ -24,6 +25,7 @@ export default function MeasurementForm({
   const [diameter, setDiameter] = useState('');
   const [height, setHeight] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [waitingForVoiceConfirmation, setWaitingForVoiceConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Transcript feldolgozása
@@ -62,10 +64,130 @@ export default function MeasurementForm({
 
   const speakConfirmation = async (d: string, h: string) => {
     try {
-      const text = `Bükk, ${d} centiméter átmérő, ${h} méter magasság. Jóváhagyod?`;
+      const text = `Bükk, ${d} centiméter átmérő, ${h} méter magasság. Jóváhagyod? Mondj igent vagy újrát.`;
       await textToSpeech.speak(text);
+
+      // TTS után indítjuk a confirmation listening-et
+      setTimeout(() => {
+        startVoiceConfirmation();
+      }, 500); // Kis késleltetés, hogy a TTS biztosan befejeződjön
     } catch (err) {
       console.error('TTS error:', err);
+    }
+  };
+
+  const startVoiceConfirmation = async () => {
+    setWaitingForVoiceConfirmation(true);
+
+    await speechRecognition.start(
+      (result) => {
+        const transcript = result.transcript.toLowerCase().trim();
+        console.log('Confirmation transcript:', transcript);
+
+        // Igen szavak
+        if (
+          transcript.includes('igen') ||
+          transcript.includes('jó') ||
+          transcript.includes('jóváhagyom') ||
+          transcript.includes('rendben') ||
+          transcript.includes('oké') ||
+          transcript.includes('ok')
+        ) {
+          setWaitingForVoiceConfirmation(false);
+          handleVoiceConfirm();
+        }
+        // Újra szavak
+        else if (
+          transcript.includes('újra') ||
+          transcript.includes('nem') ||
+          transcript.includes('újrakezd') ||
+          transcript.includes('mégse')
+        ) {
+          setWaitingForVoiceConfirmation(false);
+          handleCancel();
+        }
+        // Nem érthető
+        else {
+          textToSpeech.speak('Nem értettem. Mondj igent vagy újrát.');
+          setWaitingForVoiceConfirmation(false);
+        }
+      },
+      (error) => {
+        console.error('Confirmation error:', error);
+        setWaitingForVoiceConfirmation(false);
+        setError('Nem sikerült felismerni a választ. Használd a gombokat!');
+      }
+    );
+  };
+
+  const handleVoiceConfirm = async () => {
+    // Ugyanaz mint a handleSubmit, de event nélkül
+    setError(null);
+
+    if (!species || !diameter || !height) {
+      setError('Minden mezőt tölts ki!');
+      return;
+    }
+
+    const diameterNum = parseFloat(diameter);
+    const heightNum = parseFloat(height);
+
+    // NaN ellenőrzés
+    if (isNaN(diameterNum) || isNaN(heightNum)) {
+      setError('Érvénytelen szám formátum! Kérlek számokat adj meg.');
+      return;
+    }
+
+    // Átmérő validáció: 6-200 cm
+    if (diameterNum < 6) {
+      setError('Az átmérő nem lehet kisebb, mint 6 cm!');
+      return;
+    }
+
+    if (diameterNum > 200) {
+      setError('Az átmérő nem lehet nagyobb, mint 200 cm!');
+      return;
+    }
+
+    // Páros átmérő ellenőrzés
+    if (diameterNum % 2 !== 0) {
+      setError('Az átmérő csak páros szám lehet (pl. 20, 22, 24 cm)!');
+      return;
+    }
+
+    // Magasság validáció
+    if (heightNum < 1) {
+      setError('A magasság nem lehet kisebb, mint 1 m!');
+      return;
+    }
+
+    if (heightNum > 100) {
+      setError('A magasság nem lehet nagyobb, mint 100 m!');
+      return;
+    }
+
+    try {
+      await surveyService.addMeasurement(
+        sessionId,
+        species as any,
+        diameterNum,
+        heightNum
+      );
+
+      // Reset
+      setSpecies('');
+      setDiameter('');
+      setHeight('');
+      setShowConfirmation(false);
+      setWaitingForVoiceConfirmation(false);
+      onClearTranscript();
+      onComplete();
+
+      // Sikeres visszajelzés
+      await textToSpeech.speak('Rögzítve');
+    } catch (err) {
+      console.error('Measurement error:', err);
+      setError('Hiba a mérés rögzítése során!');
     }
   };
 
@@ -141,6 +263,7 @@ export default function MeasurementForm({
 
   const handleCancel = () => {
     setShowConfirmation(false);
+    setWaitingForVoiceConfirmation(false);
     setSpecies('');
     setDiameter('');
     setHeight('');
@@ -207,8 +330,13 @@ export default function MeasurementForm({
         {showConfirmation && (
           <div className="confirmation-dialog">
             <p>✅ Jóváhagyod ezt a mérést?</p>
+            {waitingForVoiceConfirmation && (
+              <p className="voice-waiting">
+                🎤 Várakozás a válaszodra... (Mondj "igen" vagy "újra")
+              </p>
+            )}
             <div className="confirmation-buttons">
-              <button type="submit" className="btn-confirm">
+              <button type="button" onClick={handleVoiceConfirm} className="btn-confirm">
                 Igen, rögzítem
               </button>
               <button type="button" onClick={handleCancel} className="btn-cancel">
