@@ -17,6 +17,11 @@ export default function HomePage() {
             <span className="menu-text">Lábon álló erdő felmérése</span>
           </Link>
 
+          <Link to="/survey/log" className="menu-button secondary">
+            <span className="menu-icon">🪵</span>
+            <span className="menu-text">Rönkköbözés</span>
+          </Link>
+
           <Link to="/history" className="menu-button">
             <span className="menu-icon">📋</span>
             <span className="menu-text">Korábbi felmérések</span>

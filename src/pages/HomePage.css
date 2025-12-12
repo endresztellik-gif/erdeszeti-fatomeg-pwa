@@ -46,6 +46,16 @@
   background-color: #3a6b1c;
 }
 
+.menu-button.secondary {
+  background-color: #5d4037;
+  color: white;
+  border-color: #5d4037;
+}
+
+.menu-button.secondary:hover {
+  background-color: #6d4c41;
+}
+
 .menu-icon {
   font-size: 2rem;
   min-width: 48px;

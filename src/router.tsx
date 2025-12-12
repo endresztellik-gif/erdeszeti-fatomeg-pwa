@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import StandingTreeSurveyPage from './pages/StandingTreeSurveyPage';
+import LogSurveyPage from './pages/LogSurveyPage';
 import SessionHistoryPage from './pages/SessionHistoryPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
   {
     path: '/survey/standing',
     element: <StandingTreeSurveyPage />,
+  },
+  {
+    path: '/survey/log',
+    element: <LogSurveyPage />,
   },
   {
     path: '/history',

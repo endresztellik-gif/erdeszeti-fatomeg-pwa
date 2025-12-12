@@ -1,5 +1,10 @@
 import Dexie, { Table } from 'dexie';
-import { SurveySession, TreeMeasurement } from '@app-types/measurement';
+import {
+  SurveySession,
+  TreeMeasurement,
+  LogSession,
+  LogMeasurement,
+} from '@app-types/measurement';
 
 /**
  * Erdészeti Fatömegbecslő alkalmazás adatbázis
@@ -8,6 +13,8 @@ export class AppDatabase extends Dexie {
   // Táblák típusdefiníciója
   sessions!: Table<SurveySession, string>;
   measurements!: Table<TreeMeasurement, string>;
+  logSessions!: Table<LogSession, string>;
+  logMeasurements!: Table<LogMeasurement, string>;
 
   constructor() {
     super('erdeszeti-fatomeg-db');
@@ -16,6 +23,14 @@ export class AppDatabase extends Dexie {
     this.version(1).stores({
       sessions: 'id, type, startedAt, endedAt, isPaused',
       measurements: 'id, timestamp, species',
+    });
+
+    // Verzió 2: Rönkköbözés táblák
+    this.version(2).stores({
+      sessions: 'id, type, startedAt, endedAt, isPaused',
+      measurements: 'id, timestamp, species',
+      logSessions: 'id, type, startedAt, endedAt, isPaused',
+      logMeasurements: 'id, timestamp, species',
     });
   }
 }

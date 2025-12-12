@@ -104,6 +104,19 @@ export class SpeechRecognitionService {
       return;
     }
 
+    // FONTOS: Ha már fut egy session, állítsuk le előbb!
+    if (this.isListening) {
+      console.log('Previous recognition session still running, aborting...');
+      try {
+        this.recognition.abort();
+        this.isListening = false;
+        // Kis várakozás, hogy biztosan leálljon
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (e) {
+        console.log('Error aborting previous session:', e);
+      }
+    }
+
     this.recognition.onstart = () => {
       console.log('Speech recognition started successfully');
       this.isListening = true;

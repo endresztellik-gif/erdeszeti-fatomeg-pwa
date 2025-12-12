@@ -50,7 +50,8 @@
   font-size: 0.9rem;
 }
 
-.confirmation-dialog {
+.confirmation-dialog,
+.continuation-dialog {
   margin-top: 1.5rem;
   padding: 1rem;
   background-color: #e8f5e9;
@@ -58,12 +59,22 @@
   border-radius: 8px;
 }
 
-.confirmation-dialog p {
+.continuation-dialog {
+  background-color: #fff3e0;
+  border-color: #ff9800;
+}
+
+.confirmation-dialog p,
+.continuation-dialog p {
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
   font-weight: 500;
   color: #2e7d32;
   text-align: center;
+}
+
+.continuation-dialog p {
+  color: #e65100;
 }
 
 .confirmation-buttons {
