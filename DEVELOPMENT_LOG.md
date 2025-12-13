@@ -1,5 +1,96 @@
 # Erdészeti Fatömeg PWA - Fejlesztési Napló
 
+## 2024-12-13 - Export Funkciók Teljes Körű Implementálása
+
+### Összefoglaló
+LogSession támogatás hozzáadása az exportService-hez (CSV, Excel, PDF) és a SessionHistoryPage teljes körű frissítése mindkét session típus kezelésére.
+
+### Módosított Fájlok
+
+#### 1. `src/services/exportService.ts`
+- ✅ **LogSession import** hozzáadva
+- ✅ **speciesNames import** hozzáadva (fafaj nevek megjelenítéséhez)
+- ✅ **exportLogCSV()** - LogSession CSV export (béta értékkel)
+- ✅ **exportLogExcel()** - LogSession Excel (XLSX) export összesítővel
+- ✅ **exportLogPDF()** - LogSession PDF jegyzőkönyv Huber-Smalian formulával
+
+#### 2. `src/pages/LogSurveyPage.tsx`
+- ✅ **exportService import** hozzáadva
+- ✅ **Ideiglenes export függvények eltávolítva** (290-322 sorok)
+- ✅ **PDF export gomb** hozzáadva az Excel és CSV mellé
+- ✅ Export gombok mostantól az exportService metódusait használják
+
+#### 3. `src/pages/SessionHistoryPage.tsx`
+- ✅ **CombinedSession típus** létrehozva (SurveySession | LogSession)
+- ✅ **logSurveyService import** hozzáadva
+- ✅ **loadSessions()** - mindkét session típus betöltése és kombinálása
+- ✅ **Session típus badge** (🌲 Lábon álló / 🪵 Rönkköbözés)
+- ✅ **handleResume()** - típus-függő navigáció
+- ✅ **handleDelete()** - típus-függő törlés
+- ✅ **handleExportExcel()** - típus-függő export
+- ✅ **Dinamikus item megjelenítés** (fa/rönk label)
+
+### Új Funkciók
+
+#### LogSession Export Formátumok
+
+**CSV Export:**
+- Oszlopok: Sorszám, Fafaj, Csúcsátmérő (cm), Hossz (m), Térfogat (m³), Béta, Időpont
+- UTF-8 BOM (Excel kompatibilitás)
+- Összesítő sor
+
+**Excel Export:**
+- Azonos oszlopok mint CSV
+- Formázott oszlopszélességek
+- "Rönkköbözés" munkafüzet lap
+- Összesítő sor képlettel
+
+**PDF Export:**
+- Fejléc: "Rönkköbözési Jegyzőkönyv (Huber-Smalian formula)"
+- Meta információk: Dátum, Felmérő, Helyszín
+- Táblázatos mérések
+- Automatikus oldaltörés
+- Összegzés: rönk darabszám és összes térfogat
+
+#### SessionHistory Fejlesztések
+
+- **Kombinált lista** - Standing és Log session-ök egy listában
+- **Időrendi rendezés** - Legfrissebb session-ök elöl
+- **Típus megjelenítés** - Vizuális jelölés (emoji badge)
+- **Típus-specifikus műveletek** - Folytatás, Export, Törlés
+- **Dinamikus statisztikák** - Fa/rönk darabszám automatikus váltás
+
+### Build Eredmények
+
+```
+✓ 362 modules transformed
+dist/assets/export-DL0Bu8ed.js  691.59 kB │ gzip: 228.33 kB
+PWA v1.1.0
+precache 20 entries (2109.45 KiB)
+✓ built in 14.71s
+```
+
+**PWA Manifest:**
+- Név: "Erdészeti Fatömegbecslő"
+- Short name: "Fatömeg"
+- Theme color: #2d5016
+- Ikonok: 192x192, 512x512, maskable ✅
+
+### Git Commit
+
+```bash
+git add src/
+git commit -m "LogSession export támogatás és SessionHistory teljes körű frissítése
+
+- exportService: exportLogCSV, exportLogExcel, exportLogPDF
+- LogSurveyPage: ideiglenes export függvények helyett exportService
+- SessionHistoryPage: CombinedSession típus, mindkét session típus kezelése
+- Típus-függő badge, navigáció, export és törlés
+- Build sikeres, PWA manifest OK"
+```
+
+---
+
 ## 2024-12-11 - Rönkköbözés Funkció Implementálása
 
 ### Összefoglaló

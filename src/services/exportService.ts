@@ -1,9 +1,10 @@
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
-import { SurveySession } from '@app-types/measurement';
+import { SurveySession, LogSession } from '@app-types/measurement';
 import { BackupData, PDFReportData } from '@app-types/export';
 import { volumeFormulas, SpeciesKey } from '@data/volumeFormulas';
+import { speciesNames } from '@data/speciesSpeechPatterns';
 
 /**
  * Export szolgáltatás
@@ -219,6 +220,175 @@ export class ExportService {
 
       reader.readAsText(file);
     });
+  }
+
+  // ============================================================
+  // RÖNKKÖBÖZÉS (LOG SESSION) EXPORT FUNKCIÓK
+  // ============================================================
+
+  /**
+   * LogSession CSV export
+   */
+  exportLogCSV(session: LogSession, filename?: string): void {
+    const data = session.logs.map((log, index) => ({
+      'Sorszám': index + 1,
+      'Fafaj': speciesNames[log.species] || log.species,
+      'Csúcsátmérő (cm)': log.tipDiameterCm,
+      'Hossz (m)': log.lengthM,
+      'Térfogat (m³)': log.volumeM3.toFixed(4),
+      'Béta': log.betaValue.toFixed(6),
+      'Időpont': new Date(log.timestamp).toLocaleString('hu-HU'),
+    }));
+
+    const csv = Papa.unparse(data, {
+      delimiter: ';', // Excel kompatibilitás
+      header: true,
+    });
+
+    // BOM hozzáadása (UTF-8 támogatás Excel-ben)
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || `ronkkobozes_${session.id}.csv`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * LogSession Excel export
+   */
+  exportLogExcel(session: LogSession, filename?: string): void {
+    const data = session.logs.map((log, index) => ({
+      'Sorszám': index + 1,
+      'Fafaj': speciesNames[log.species] || log.species,
+      'Csúcsátmérő (cm)': log.tipDiameterCm,
+      'Hossz (m)': log.lengthM,
+      'Térfogat (m³)': Number(log.volumeM3.toFixed(4)),
+      'Béta': Number(log.betaValue.toFixed(6)),
+      'Időpont': new Date(log.timestamp).toLocaleString('hu-HU'),
+    }));
+
+    // Összesítő sor hozzáadása
+    const totalVolume = session.logs.reduce((sum, l) => sum + l.volumeM3, 0);
+    data.push({
+      'Sorszám': '',
+      'Fafaj': 'ÖSSZESEN',
+      'Csúcsátmérő (cm)': '',
+      'Hossz (m)': '',
+      'Térfogat (m³)': Number(totalVolume.toFixed(4)),
+      'Béta': '',
+      'Időpont': '',
+    } as any);
+
+    // Worksheet létrehozása
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // Oszlopszélességek beállítása
+    ws['!cols'] = [
+      { wch: 10 }, // Sorszám
+      { wch: 25 }, // Fafaj
+      { wch: 18 }, // Csúcsátmérő
+      { wch: 12 }, // Hossz
+      { wch: 16 }, // Térfogat
+      { wch: 12 }, // Béta
+      { wch: 20 }, // Időpont
+    ];
+
+    // Workbook létrehozása
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Rönkköbözés');
+
+    // Letöltés
+    XLSX.writeFile(wb, filename || `ronkkobozes_${session.id}.xlsx`);
+  }
+
+  /**
+   * LogSession PDF export (jegyzőkönyv)
+   */
+  exportLogPDF(
+    session: LogSession,
+    metadata?: PDFReportData,
+    filename?: string
+  ): void {
+    const doc = new jsPDF();
+
+    // Fejléc
+    doc.setFontSize(18);
+    doc.text('Rönkköbözési Jegyzőkönyv', 105, 20, { align: 'center' });
+    doc.setFontSize(11);
+    doc.text('(Huber-Smalian formula)', 105, 28, { align: 'center' });
+
+    // Meta információk
+    doc.setFontSize(12);
+    let y = 45;
+
+    doc.text(
+      `Dátum: ${new Date(session.startedAt).toLocaleDateString('hu-HU')}`,
+      20,
+      y
+    );
+    y += 10;
+
+    if (metadata?.surveyorName) {
+      doc.text(`Felmérő: ${metadata.surveyorName}`, 20, y);
+      y += 10;
+    }
+
+    if (session.location) {
+      doc.text(`Helyszín: ${session.location}`, 20, y);
+      y += 10;
+    }
+
+    y += 10;
+
+    // Táblázat fejléc
+    doc.setFontSize(9);
+    doc.text('Sorszám', 20, y);
+    doc.text('Fafaj', 40, y);
+    doc.text('Csúcsátmérő (cm)', 80, y);
+    doc.text('Hossz (m)', 120, y);
+    doc.text('Béta', 145, y);
+    doc.text('Térfogat (m³)', 165, y);
+
+    y += 5;
+    doc.line(20, y, 190, y); // Vonal
+    y += 5;
+
+    // Mérések
+    session.logs.forEach((log, index) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.text((index + 1).toString(), 22, y);
+      doc.text(speciesNames[log.species] || log.species, 40, y);
+      doc.text(log.tipDiameterCm.toString(), 90, y);
+      doc.text(log.lengthM.toString(), 125, y);
+      doc.text(log.betaValue.toFixed(2), 147, y);
+      doc.text(log.volumeM3.toFixed(4), 172, y);
+
+      y += 7;
+    });
+
+    // Összegzés
+    y += 10;
+    doc.line(20, y, 190, y);
+    y += 7;
+
+    const totalVolume = session.logs.reduce((sum, l) => sum + l.volumeM3, 0);
+    const totalLogs = session.logs.length;
+
+    doc.setFontSize(12);
+    doc.text(`Összesen: ${totalLogs} rönk`, 20, y);
+    doc.text(`Összes térfogat: ${totalVolume.toFixed(4)} m³`, 100, y);
+
+    // Letöltés
+    doc.save(filename || `ronkkobozes_jegyzokonyv_${session.id}.pdf`);
   }
 }
 

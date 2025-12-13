@@ -5,6 +5,7 @@ import VoiceInput from '@components/measurement/VoiceInput';
 import LogMeasurementForm from '@components/measurement/LogMeasurementForm';
 import LocationForm, { LocationData } from '@components/measurement/LocationForm';
 import { logSurveyService } from '@services/surveyService';
+import { exportService } from '@services/exportService';
 import { textToSpeech } from '@services/textToSpeechService';
 import { LogSession, LogMeasurement } from '@app-types/measurement';
 import { speciesNames } from '@data/speciesSpeechPatterns';
@@ -236,13 +237,19 @@ export default function LogSurveyPage() {
             </p>
             <div className="export-buttons">
               <button
-                onClick={() => exportLogSessionExcel(session)}
+                onClick={() => exportService.exportLogExcel(session)}
                 className="export-btn excel"
               >
                 Excel
               </button>
               <button
-                onClick={() => exportLogSessionCSV(session)}
+                onClick={() => exportService.exportLogPDF(session)}
+                className="export-btn pdf"
+              >
+                PDF
+              </button>
+              <button
+                onClick={() => exportService.exportLogCSV(session)}
                 className="export-btn csv"
               >
                 CSV
@@ -287,36 +294,4 @@ function LogMeasurementList({ logs }: { logs: LogMeasurement[] }) {
   );
 }
 
-// Temporary export functions until exportService is extended
-function exportLogSessionExcel(session: LogSession) {
-  const data = session.logs.map((log, i) => ({
-    sorszam: i + 1,
-    fafaj: speciesNames[log.species] || log.species,
-    csucsatmero_cm: log.tipDiameterCm,
-    hossz_m: log.lengthM,
-    terfogat_m3: log.volumeM3.toFixed(4),
-    beta: log.betaValue.toFixed(6),
-  }));
-
-  const total = session.logs.reduce((sum, l) => sum + l.volumeM3, 0);
-
-  // CSV format for now
-  const headers = ['Sorszám', 'Fafaj', 'Csúcsátmérő (cm)', 'Hossz (m)', 'Térfogat (m³)', 'Béta'];
-  const rows = data.map((d) =>
-    [d.sorszam, d.fafaj, d.csucsatmero_cm, d.hossz_m, d.terfogat_m3, d.beta].join(';')
-  );
-
-  const csv = [headers.join(';'), ...rows, '', `Összesen:;${session.logs.length} rönk;;;${total.toFixed(3)} m³`].join('\n');
-
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `ronkkobozes_${new Date().toISOString().slice(0, 10)}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportLogSessionCSV(session: LogSession) {
-  exportLogSessionExcel(session); // Same for now
-}
+// Export funkciók mostantól az exportService-ből származnak

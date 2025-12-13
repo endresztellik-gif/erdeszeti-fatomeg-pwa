@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { surveyService } from '@services/surveyService';
+import { surveyService, logSurveyService } from '@services/surveyService';
 import { exportService } from '@services/exportService';
-import { SurveySession } from '@app-types/measurement';
+import { SurveySession, LogSession } from '@app-types/measurement';
 import MainLayout from '@components/layout/MainLayout';
 import './SessionHistoryPage.css';
 
+// Kombinált session típus
+type CombinedSession = (SurveySession | LogSession) & {
+  sessionType: 'standing' | 'log';
+};
+
 /**
  * Korábbi felmérések oldal
- * Session lista megjelenítése, folytatás, export, törlés
+ * Session lista megjelenítése (standing + log), folytatás, export, törlés
  */
 export default function SessionHistoryPage() {
-  const [sessions, setSessions] = useState<SurveySession[]>([]);
+  const [sessions, setSessions] = useState<CombinedSession[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -21,8 +26,19 @@ export default function SessionHistoryPage() {
 
   const loadSessions = async () => {
     try {
-      const allSessions = await surveyService.getAllSessions();
-      setSessions(allSessions);
+      const standingSessions = await surveyService.getAllSessions();
+      const logSessions = await logSurveyService.getAllSessions();
+
+      // Kombinálás és sessionType hozzáadása
+      const combined: CombinedSession[] = [
+        ...standingSessions.map(s => ({ ...s, sessionType: 'standing' as const })),
+        ...logSessions.map(s => ({ ...s, sessionType: 'log' as const })),
+      ];
+
+      // Rendezés időpont szerint (legfrissebb elöl)
+      combined.sort((a, b) => b.startedAt - a.startedAt);
+
+      setSessions(combined);
     } catch (error) {
       console.error('Hiba a session-ök betöltése során:', error);
     } finally {
@@ -30,20 +46,33 @@ export default function SessionHistoryPage() {
     }
   };
 
-  const handleResume = async (sessionId: string) => {
-    await surveyService.resumeSession(sessionId);
-    navigate('/survey/standing', { state: { resumeSessionId: sessionId } });
+  const handleResume = async (session: CombinedSession) => {
+    if (session.sessionType === 'standing') {
+      await surveyService.resumeSession(session.id);
+      navigate('/survey/standing', { state: { resumeSessionId: session.id } });
+    } else {
+      await logSurveyService.resumeSession(session.id);
+      navigate('/survey/log', { state: { resumeSessionId: session.id } });
+    }
   };
 
-  const handleDelete = async (sessionId: string) => {
+  const handleDelete = async (session: CombinedSession) => {
     if (confirm('Biztosan törlöd ezt a felmérést? Ez a művelet nem visszavonható!')) {
-      await surveyService.deleteSession(sessionId);
+      if (session.sessionType === 'standing') {
+        await surveyService.deleteSession(session.id);
+      } else {
+        await logSurveyService.deleteSession(session.id);
+      }
       loadSessions();
     }
   };
 
-  const handleExportExcel = (session: SurveySession) => {
-    exportService.exportExcel(session);
+  const handleExportExcel = (session: CombinedSession) => {
+    if (session.sessionType === 'standing') {
+      exportService.exportExcel(session as SurveySession);
+    } else {
+      exportService.exportLogExcel(session as LogSession);
+    }
   };
 
   const formatDate = (timestamp: number) => {
@@ -56,7 +85,7 @@ export default function SessionHistoryPage() {
     });
   };
 
-  const getSessionStatus = (session: SurveySession) => {
+  const getSessionStatus = (session: CombinedSession) => {
     if (session.isPaused) return 'paused';
     if (session.endedAt) return 'completed';
     return 'active';
@@ -82,15 +111,25 @@ export default function SessionHistoryPage() {
           <div className="session-list">
             {sessions.map((session) => {
               const status = getSessionStatus(session);
-              const totalVolume = session.trees.reduce((sum, t) => sum + t.volumeM3, 0);
+
+              // Típus-függő adatok kinyerése
+              const isStanding = session.sessionType === 'standing';
+              const items = isStanding
+                ? (session as SurveySession).trees
+                : (session as LogSession).logs;
+              const totalVolume = items.reduce((sum: number, item: any) => sum + item.volumeM3, 0);
+              const itemLabel = isStanding ? 'fa' : 'rönk';
 
               return (
                 <div
                   key={session.id}
-                  className={`session-card ${status}`}
+                  className={`session-card ${status} ${session.sessionType}`}
                 >
                   <div className="session-header">
                     <span className="session-date">{formatDate(session.startedAt)}</span>
+                    <span className="badge badge-type">
+                      {isStanding ? '🌲 Lábon álló' : '🪵 Rönkköbözés'}
+                    </span>
                     {status === 'paused' && (
                       <span className="badge badge-paused">Szüneteltetve</span>
                     )}
@@ -107,20 +146,20 @@ export default function SessionHistoryPage() {
                       {session.location || 'Helyszín nincs megadva'}
                     </p>
                     <p className="session-stats">
-                      {session.trees.length} fa | {totalVolume.toFixed(2)} m³
+                      {items.length} {itemLabel} | {totalVolume.toFixed(2)} m³
                     </p>
                   </div>
 
                   <div className="session-actions">
                     {(status === 'paused' || status === 'active') && (
                       <button
-                        onClick={() => handleResume(session.id)}
+                        onClick={() => handleResume(session)}
                         className="btn-action btn-resume"
                       >
                         Folytatás
                       </button>
                     )}
-                    {session.trees.length > 0 && (
+                    {items.length > 0 && (
                       <button
                         onClick={() => handleExportExcel(session)}
                         className="btn-action btn-export"
@@ -129,7 +168,7 @@ export default function SessionHistoryPage() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(session.id)}
+                      onClick={() => handleDelete(session)}
                       className="btn-action btn-delete"
                     >
                       Törlés
