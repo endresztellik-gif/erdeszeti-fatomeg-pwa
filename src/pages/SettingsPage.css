@@ -1,0 +1,684 @@
+/* ========================================
+   FOREST ENGINEERING - Settings Page
+   Erdészeti PWA - Természetes + Precision Design
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+/* ========================================
+   CSS Variables - Forest Palette
+   ======================================== */
+
+:root {
+  /* Forest Colors */
+  --forest-primary: #2d5016;
+  --forest-primary-light: #3d6b21;
+  --forest-primary-dark: #1f3a0f;
+
+  --wood-brown: #8b7355;
+  --wood-light: #a0826d;
+  --wood-dark: #6d5a45;
+
+  --moss-green: #7cb342;
+  --moss-light: #9ccc65;
+
+  --cream-bg: #faf9f6;
+  --cream-card: #ffffff;
+  --text-primary: #2c2c2c;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(45, 80, 22, 0.08);
+  --shadow-md: 0 4px 16px rgba(45, 80, 22, 0.12);
+  --shadow-lg: 0 8px 32px rgba(45, 80, 22, 0.16);
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Variables */
+.dark-mode {
+  --forest-primary: #4a7f2a;
+  --forest-primary-light: #5a9438;
+  --forest-primary-dark: #3a6520;
+
+  --cream-bg: #1a1a1a;
+  --cream-card: #2a2a2a;
+  --text-primary: #e8e8e8;
+  --text-secondary: #b8b8b8;
+  --text-tertiary: #888888;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   Page Container
+   ======================================== */
+
+.settings-page {
+  min-height: 100vh;
+  background: var(--cream-bg);
+  padding: var(--spacing-lg) var(--spacing-md);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Wood grain texture background */
+  background-image:
+    linear-gradient(135deg, var(--cream-bg) 0%, var(--cream-bg) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 115, 85, 0.02) 2px,
+      rgba(139, 115, 85, 0.02) 4px
+    );
+
+  /* Noise texture overlay */
+  position: relative;
+}
+
+.settings-page::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+.settings-page > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.settings-header {
+  max-width: 800px;
+  margin: 0 auto var(--spacing-xl);
+  text-align: center;
+}
+
+.settings-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--forest-primary);
+  margin: 0 0 var(--spacing-sm);
+  letter-spacing: -0.02em;
+
+  /* Subtle text shadow */
+  text-shadow: 0 2px 4px rgba(45, 80, 22, 0.1);
+}
+
+.settings-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* Save Indicator */
+.save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--moss-green);
+  color: white;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+
+  animation: slideDown 0.3s ease-out;
+}
+
+.save-icon {
+  font-size: 1rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   Settings Grid
+   ======================================== */
+
+.settings-grid {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* ========================================
+   Settings Card
+   ======================================== */
+
+.settings-card {
+  background: var(--cream-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(45, 80, 22, 0.08);
+
+  /* Staggered animation */
+  animation: cardReveal 0.6s ease-out backwards;
+
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.settings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-card-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid rgba(45, 80, 22, 0.1);
+}
+
+.card-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.card-title {
+  font-family: 'Crimson Pro', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--forest-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.badge-soon {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  background: var(--moss-light);
+  color: white;
+  border-radius: var(--radius-sm);
+}
+
+/* ========================================
+   Settings Group
+   ======================================== */
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Setting Item */
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: rgba(45, 80, 22, 0.02);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base);
+}
+
+.setting-item:hover {
+  background: rgba(45, 80, 22, 0.05);
+}
+
+/* Setting Label */
+.setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.label-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.label-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.label-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--forest-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   Forest Toggle (Custom Toggle Switch)
+   ======================================== */
+
+.forest-toggle {
+  position: relative;
+  width: 60px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.toggle-track {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--wood-brown);
+  border-radius: 16px;
+  position: relative;
+  transition: background var(--transition-base);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* Wood grain effect */
+  background-image:
+    linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.05) 50%, transparent 100%);
+}
+
+.forest-toggle:hover .toggle-track {
+  background: var(--wood-dark);
+}
+
+.forest-toggle.active .toggle-track {
+  background: var(--forest-primary);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.forest-toggle.active:hover .toggle-track {
+  background: var(--forest-primary-light);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-base);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+
+  /* Thumb texture */
+  background-image:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), transparent);
+}
+
+.forest-toggle.active .toggle-thumb {
+  transform: translateX(28px);
+}
+
+.forest-toggle:active .toggle-thumb {
+  width: 30px;
+}
+
+/* ========================================
+   Speech Rate Slider
+   ======================================== */
+
+.slider-container {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.speech-rate-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--wood-brown);
+  border-radius: 4px;
+  outline: none;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+
+  /* Remove default track background */
+  background: transparent;
+}
+
+/* Track background (inactive) */
+.speech-rate-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: var(--wood-brown);
+  border-radius: 4px;
+}
+
+.speech-rate-slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: var(--wood-brown);
+  border-radius: 4px;
+}
+
+/* Filled track (simulated with separate element) */
+.slider-track-fill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 8px;
+  background: var(--forest-primary);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+  transition: width var(--transition-fast);
+}
+
+/* Slider thumb */
+.speech-rate-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 3px solid var(--forest-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform var(--transition-fast);
+  position: relative;
+  z-index: 3;
+}
+
+.speech-rate-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 3px solid var(--forest-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform var(--transition-fast);
+}
+
+.speech-rate-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.speech-rate-slider::-moz-range-thumb:hover {
+  transform: scale(1.15);
+}
+
+.speech-rate-slider::-webkit-slider-thumb:active {
+  transform: scale(1.05);
+}
+
+.speech-rate-slider::-moz-range-thumb:active {
+  transform: scale(1.05);
+}
+
+/* Slider Labels */
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ========================================
+   Segmented Control
+   ======================================== */
+
+.segmented-control {
+  display: flex;
+  gap: var(--spacing-xs);
+  background: rgba(45, 80, 22, 0.06);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+.segment {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--text-secondary);
+}
+
+.segment:hover {
+  background: rgba(45, 80, 22, 0.08);
+}
+
+.segment.active {
+  background: var(--forest-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.segment-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.segment-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ========================================
+   Coming Soon
+   ======================================== */
+
+.coming-soon-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-style: italic;
+  margin: 0;
+  padding: var(--spacing-md);
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+
+.settings-footer {
+  max-width: 800px;
+  margin: var(--spacing-xl) auto 0;
+  text-align: center;
+  padding-top: var(--spacing-lg);
+  border-top: 2px solid rgba(45, 80, 22, 0.1);
+}
+
+.reset-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  border: 2px solid var(--wood-brown);
+  color: var(--wood-brown);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: 'Inter', sans-serif;
+}
+
+.reset-button:hover {
+  background: var(--wood-brown);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.reset-button:active {
+  transform: translateY(0);
+}
+
+.reset-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: transform var(--transition-slow);
+}
+
+.reset-button:hover .reset-icon {
+  transform: rotate(180deg);
+}
+
+.settings-info {
+  margin-top: var(--spacing-md);
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 640px) {
+  .settings-page {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .settings-title {
+    font-size: 2rem;
+  }
+
+  .settings-subtitle {
+    font-size: 1rem;
+  }
+
+  .settings-card {
+    padding: var(--spacing-md);
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .forest-toggle {
+    align-self: flex-end;
+  }
+
+  .segmented-control {
+    flex-direction: column;
+  }
+
+  .segment {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--spacing-sm);
+  }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+
+.forest-toggle:focus-visible,
+.segment:focus-visible,
+.reset-button:focus-visible {
+  outline: 3px solid var(--moss-green);
+  outline-offset: 2px;
+}
+
+.speech-rate-slider:focus-visible {
+  outline: 3px solid var(--moss-green);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
